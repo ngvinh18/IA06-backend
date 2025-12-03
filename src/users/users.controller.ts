@@ -8,22 +8,19 @@ import { JwtAuthGuard } from '../auth/jwt-auth.guard';
 export class UsersController {
   constructor(private readonly usersService: UsersService) {}
 
-  // REGISTER — nhận email, password, username
   @Post('register')
-  async register(@Body() dto: CreateUserDto) {
+  register(@Body() dto: CreateUserDto) {
     return this.usersService.register(dto);
   }
 
-  // LOGIN — nhận email + password (KHÔNG nhận username)
   @Post('login')
-  async login(@Body() dto: LoginUserDto) {
+  login(@Body() dto: LoginUserDto) {
     return this.usersService.login(dto);
   }
 
-  // GET PROFILE — trả về thông tin user dựa vào token
   @UseGuards(JwtAuthGuard)
   @Get('me')
-  async me(@Req() req) {
+  me(@Req() req) {
     return this.usersService.getMe(req.user.email);
   }
 }
