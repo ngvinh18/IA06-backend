@@ -33,9 +33,10 @@ export class UsersService {
 
     // Tạo user mới
     const user = new this.userModel({
-      email: dto.email,
-      password: hashedPassword,
-    });
+  email: dto.email,
+  password: hashedPassword,
+});
+
 
     try {
       const savedUser = await user.save();
