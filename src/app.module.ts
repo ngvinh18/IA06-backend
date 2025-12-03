@@ -8,29 +8,32 @@ dotenv.config();
 
 const logger = new Logger('AppModule');
 
-const mongoUri = process.env.MONGO_URI ?? process.env.MONGO || process.env.MONGO_DB_URI ?? '';
+// ✔ Fix mixing ?? and ||
+const mongoUri =
+  process.env.MONGO_URI ??
+  process.env.MONGO ??
+  process.env.MONGO_DB_URI ??
+  '';
 
 if (!mongoUri) {
   logger.warn(
-    'MONGO_URI is not set. Application will attempt to connect with fallback local MongoDB. ' +
-      'Set MONGO_URI env var to point to your MongoDB Atlas or production DB.',
+    '⚠️ MONGO_URI is not set. Using fallback: mongodb://127.0.0.1:27017/ia06',
   );
 }
 
-// use fallback local mongodb string to avoid empty string causing immediate failure
-const effectiveMongoUri = mongoUri || 'mongodb://127.0.0.1:27017/ia06';
+// ✔ fallback nếu biến môi trường không tồn tại
+const effectiveMongoUri = mongoUri !== '' ? mongoUri : 'mongodb://127.0.0.1:27017/ia06';
 
 @Module({
   imports: [
-    MongooseModule.forRoot(effectiveMongoUri, {
-      // You can add options here if needed
-      useNewUrlParser: true,
-      useUnifiedTopology: true,
-    }),
+    // ✔ Không thêm options lỗi thời
+    MongooseModule.forRoot(effectiveMongoUri),
+
     JwtModule.register({
       secret: process.env.JWT_SECRET || 'mysecret123',
       signOptions: { expiresIn: '1d' },
     }),
+
     UsersModule,
   ],
 })
