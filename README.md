@@ -1,52 +1,38 @@
+# IA06 Backend – User Registration API
 
-# IA06 Backend – User Registration API (NestJS)
+## Features
+- NestJS API for user registration & login
+- MongoDB + Mongoose
+- Password hashing with bcryptjs
+- JWT authentication
+- Validation with class-validator
+- CORS enabled for frontend
 
-## [1. Cài đặt]()
+## Endpoints
+### POST /users/register
+- Validates email & password
+- Checks duplicate email
+- Hashes password
+- Saves user to MongoDB
 
-cd ia06-backend
+### POST /users/login
+- Validates credentials
+- Compares password hash
+- Returns JWT token
 
-**npm** install
+### GET /users/me
+- Requires Bearer token
+- Returns user info except password
 
-## [2. File môi trường (.env)]()
+## Environment Variables
+```
+MONGO_URI=
+JWT_SECRET=
+PORT=
+```
 
-Tạo file .env trong thư mục backend:
-
-MONGO_URI=mongodb://localhost:27017/ia06
-
-**JWT_SECRET=mysecret123**
-
-## [3. Chạy server]()
-
+## Run Locally
+```
+npm install
 npm run start:dev
-
-Server chạy tại: http://localhost:3000
-
-## [4. API]()
-
-### [POST
-
-/user/register]()
-
-Body:
-
-{
-
-  **"email"**:**"example@gmail.com"**,
-
-  **"password"**:**"123456"**
-
-**}**
-
-### [POST
-
-/user/login]()
-
-Body:	
-
-{
-
-  **"email"**:**"example@gmail.com"**,
-
-  **"password"**:**"123456"**
-
-**}**
+```
