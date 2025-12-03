@@ -4,7 +4,7 @@ import { CreateUserDto } from './dto/create-user.dto';
 import { LoginUserDto } from 'src/users/dto/login-user.dto';
 import { JwtAuthGuard } from '../auth/jwt-auth.guard';
 
-@Controller('user')
+@Controller('users')
 export class UsersController {
   constructor(private readonly usersService: UsersService) {}
 
@@ -21,6 +21,7 @@ export class UsersController {
   @UseGuards(JwtAuthGuard)
   @Get('me')
   me(@Req() req) {
+    // req.user được gán bởi JwtAuthGuard
     return this.usersService.getMe(req.user.email);
   }
 }

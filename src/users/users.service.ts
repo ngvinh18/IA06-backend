@@ -2,6 +2,9 @@ import {
   ConflictException,
   Injectable,
   InternalServerErrorException,
+  BadRequestException,
+  NotFoundException,
+  UnauthorizedException,
 } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
@@ -9,8 +12,7 @@ import { CreateUserDto } from './dto/create-user.dto';
 import { User, UserDocument } from './schemas/user.schema';
 import * as bcrypt from 'bcryptjs';
 import { JwtService } from '@nestjs/jwt';
-import { LoginUserDto } from "./dto/login-user.dto";
-
+import { LoginUserDto } from './dto/login-user.dto';
 
 @Injectable()
 export class UsersService {
@@ -18,12 +20,16 @@ export class UsersService {
     @InjectModel(User.name)
     private userModel: Model<UserDocument>,
 
-    private jwtService: JwtService,  // ⭐ ĐÃ THÊM CHÍNH XÁC
+    private jwtService: JwtService,
   ) {}
 
   async register(dto: CreateUserDto) {
-    // Kiểm tra email trùng
-    const exist = await this.userModel.findOne({ email: dto.email });
+    if (!dto || !dto.email || !dto.password) {
+      throw new BadRequestException('Email and password are required');
+    }
+
+    // Check duplicate email
+    const exist = await this.userModel.findOne({ email: dto.email }).exec();
     if (exist) {
       throw new ConflictException('Email already exists');
     }
@@ -31,38 +37,44 @@ export class UsersService {
     // Hash password
     const hashedPassword = await bcrypt.hash(dto.password, 10);
 
-    // Tạo user mới
+    // Create user
     const user = new this.userModel({
-  email: dto.email,
-  password: hashedPassword,
-});
-
+      email: dto.email,
+      password: hashedPassword,
+    });
 
     try {
       const savedUser = await user.save();
 
+      // Return safe response (no password)
       return {
         email: savedUser.email,
         createdAt: (savedUser as any).createdAt,
       };
     } catch (error) {
+      // Log error server-side if you want (console for now)
+      console.error('Error creating user:', error?.message ?? error);
       throw new InternalServerErrorException('Cannot create user');
     }
   }
 
   async login(dto: LoginUserDto) {
-    const user = await this.userModel.findOne({ email: dto.email });
+    if (!dto || !dto.email || !dto.password) {
+      throw new BadRequestException('Email and password are required');
+    }
+
+    const user = await this.userModel.findOne({ email: dto.email }).exec();
 
     if (!user) {
-      throw new ConflictException('Email không tồn tại');
+      throw new NotFoundException('Email does not exist');
     }
 
     const isMatch = await bcrypt.compare(dto.password, user.password);
     if (!isMatch) {
-      throw new ConflictException('Sai mật khẩu');
+      throw new UnauthorizedException('Invalid credentials');
     }
 
-    // ⭐ Tạo JWT thật
+    // Create JWT
     const token = await this.jwtService.signAsync({
       id: user._id,
       email: user.email,
@@ -75,6 +87,7 @@ export class UsersService {
   }
 
   async getMe(email: string) {
-    return await this.userModel.findOne({ email });
+    if (!email) return null;
+    return await this.userModel.findOne({ email }).select('-password').exec();
   }
 }
