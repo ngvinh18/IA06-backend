@@ -47,7 +47,7 @@ export class UsersService {
     }
   }
 
-  async login(dto: CreateUserDto) {
+  async login(dto: LoginUserDto) {
     const user = await this.userModel.findOne({ email: dto.email });
 
     if (!user) {
