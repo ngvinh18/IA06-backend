@@ -2,9 +2,7 @@ import { Module } from '@nestjs/common';
 import { MongooseModule } from '@nestjs/mongoose';
 import { UsersModule } from './users/users.module';
 import { JwtModule } from '@nestjs/jwt';
-import * as dotenv from 'dotenv';
 
-dotenv.config();
 
 @Module({
   imports: [
